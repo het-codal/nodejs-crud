@@ -1,5 +1,8 @@
 const User = require('../Models/User')
 const mongoose = require('mongoose')
+const Validator = require('validatorjs')
+const bcrypt = require('bcrypt')
+require('dotenv/config')
 /**
   * @swagger
   * tags:
@@ -51,11 +54,23 @@ const mongoose = require('mongoose')
  */
 exports.createItem = async (req, res) => {
     const data = req.body;
-    const userSave =  await User.create(data);
-    if (userSave) {
-        console.log('User saved')
+    const validationRule = {
+        "email": "required|email",
+        "name": "required",
+        "password": "required"
     }
-    return res.status(200).json({'data': data, 'message': 'Item created.'})
+    const customMessage = {
+        "required.name" : "Name is required",
+        "required.email" : "Email is required",
+        "require.password" : "Password is required"
+    }
+    data.password = bcrypt.hashSync(data.password, 10)
+    const validation = new Validator(data, validationRule, customMessage)
+    if (validation.fails()) {
+        return res.status(400).json({'status': 'ERROR' ,'message':JSON.parse(JSON.stringify(validation.errors)).errors})
+    }
+    const userSave =  await User.create(data);
+    return res.status(200).json({'data': userSave, 'message': 'Item created.'})
 }
 
 /**

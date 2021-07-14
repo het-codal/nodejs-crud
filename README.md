@@ -17,8 +17,7 @@ npm start
 open this link http://localhost:8000/api-docs/#/
 
 ## To create JWT token
-set your email and password in .env (copy from .env.example)
-This is static example for login
+place secret in env and set any value you want
 
 ## dependencies list 
 1. Express (for http request and request data parsing)
