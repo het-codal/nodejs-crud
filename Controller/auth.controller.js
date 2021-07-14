@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+require('dotenv/config');
 
 /**
   * @swagger
@@ -45,12 +46,13 @@ const jwt = require('jsonwebtoken');
  *         description: Some server error
  */
 exports.login = (req, res) => {
-
+    const username = process.env.username
+    const password = process.env.password
     const defaultUser = [
         {
             id: 1,
-            email: 'hrachh@codal.com',
-            password: 'admin123'
+            email: username,
+            password: password
         }
     ]
     const user = defaultUser.find(
