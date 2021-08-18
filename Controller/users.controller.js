@@ -11,6 +11,20 @@ require('dotenv/config')
   */
 
 /**
+  * @openapi
+  * definitions:
+  *   BulkSource:
+  *     type: object
+  *     properties:
+  *       language:
+  *        type: string
+  *       BE:
+  *        type: integer
+  *       FE:
+  *        type: integer
+  */
+
+/**
  * @openapi
  * components:
  *   schemas:
@@ -26,6 +40,14 @@ require('dotenv/config')
  *         password:
  *           type: string
  *           description: The user password
+ *         hobiie:
+ *           type: array
+ *           items:
+ *             type: string
+ *         Languages:
+ *           type: array
+ *           items:
+ *             $ref: '#/definitions/BulkSource'
  */
 
 /**
@@ -127,11 +149,11 @@ exports.listItem = async (req, res) => {
 exports.readItem = async (req, res) => {
     const data = req.params.id;
     if (!mongoose.isValidObjectId(data)) {
-        return res.status(400).json({'status': 'ERROR', 'message': 'Id is not valid.'})    
+        return res.status(400).json({'status': 'ERROR', 'message': 'Id is not valid.'})
     }
     const user = await User.findById(data);
     if (!user) {
-        return res.status(404).json({'status': 'ERROR', 'message': 'User not found.'})    
+        return res.status(404).json({'status': 'ERROR', 'message': 'User not found.'})
     }
     return res.status(200).json({'data': user, 'message': 'Item Found.'})
 }
@@ -171,7 +193,7 @@ exports.readItem = async (req, res) => {
 exports.updateItem = (req, res) => {
     const id = req.params.id;
     if (!mongoose.isValidObjectId(data)) {
-        return res.status(400).json({'status': 'ERROR', 'message': 'Id is not valid.'})    
+        return res.status(400).json({'status': 'ERROR', 'message': 'Id is not valid.'})
     }
     const data = req.body;
     const user = User.findByIdAndUpdate(id, data, {useFindAndModify: false})
@@ -207,18 +229,18 @@ exports.updateItem = (req, res) => {
  *       400:
  *         description: The given id is not valid
  *       401:
- *         description: unauthorized    
+ *         description: unauthorized
  *       404:
  *         description: The user was not found
  */
 exports.deleteItem = async (req, res) => {
     const data = req.params.id;
     if (!mongoose.isValidObjectId(data)) {
-        return res.status(400).json({'status': 'ERROR', 'message': 'Object id is not valid.'})    
+        return res.status(400).json({'status': 'ERROR', 'message': 'Object id is not valid.'})
     }
     const user = await User.findByIdAndRemove(data, {useFindAndModify: false})
     if (!user) {
-        return res.status(404).json({'status': 'ERROR', 'message': 'Item not found.'})    
+        return res.status(404).json({'status': 'ERROR', 'message': 'Item not found.'})
     }
     return res.status(200).json({'data': user, 'message': 'Item deleted.'})
 }
