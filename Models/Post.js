@@ -1,17 +1,16 @@
 const mongoose = require("mongoose");
-
-const UserSchema = mongoose.Schema({
-  name: {
+const PostSchema = mongoose.Schema({
+  title: {
     type: String,
-    required: true,
+    require: "{PATH} is required",
   },
-  email: {
+  description: {
     type: String,
-    required: true,
+    require: "{PATH} is required",
   },
-  password: {
-    type: String,
-    required: true,
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "users",
   },
   isDeleted: {
     type: Boolean,
@@ -25,11 +24,13 @@ const UserSchema = mongoose.Schema({
     type: Date,
     default: Date.now,
   },
-  posts: [{ type: mongoose.Schema.Types.ObjectId, ref: "posts" }],
 });
-UserSchema.method("toJSON", function () {
+
+PostSchema.method("toJSON", function () {
   const { __v, _id, ...object } = this.toObject();
   object.id = _id;
+  object.v = __v;
   return object;
 });
-module.exports = mongoose.model("users", UserSchema);
+
+module.exports = mongoose.model("posts", PostSchema);

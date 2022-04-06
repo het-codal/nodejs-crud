@@ -1,72 +1,46 @@
+const Post = require("../Models/Post");
 const User = require("../Models/User");
 const mongoose = require("mongoose");
 const Validator = require("validatorjs");
-const bcrypt = require("bcrypt");
-require("dotenv/config");
 /**
  * @swagger
  * tags:
- *   name: Users
- *   description: The User managing API
- */
-
-/**
- * @openapi
- * definitions:
- *   BulkSource:
- *     type: object
- *     properties:
- *       language:
- *        type: string
- *       BE:
- *        type: integer
- *       FE:
- *        type: integer
+ *   name: Posts
+ *   description: The Post managing API
  */
 
 /**
  * @openapi
  * components:
  *   schemas:
- *     User:
+ *     Post:
  *       type: object
  *       properties:
- *         name:
+ *         title:
  *           type: string
- *           description: The user name
- *         email:
+ *           description: The post title
+ *         description:
  *           type: string
- *           description: The user email
- *         password:
- *           type: string
- *           description: The user password
- *         hobiie:
- *           type: array
- *           items:
- *             type: string
- *         Languages:
- *           type: array
- *           items:
- *             $ref: '#/definitions/BulkSource'
+ *           description: The description
  */
 
 /**
  * @openapi
- * /users:
+ * /posts:
  *   post:
- *     summary: Create a new user
- *     tags: [Users]
+ *     summary: Create a new post
+ *     tags: [Posts]
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/User'
+ *             $ref: '#/components/schemas/Post'
  *     security:
  *       - jwt: []
  *     responses:
  *       200:
- *         description: The user was successfully created
+ *         description: The post was successfully created
  *       400:
  *         description: validation error
  *       401:
@@ -75,18 +49,15 @@ require("dotenv/config");
  *         description: Some server error
  */
 exports.createItem = async (req, res) => {
-  const data = req.body;
+  let data = req.body;
   const validationRule = {
-    email: "required|email",
-    name: "required",
-    password: "required",
+    title: "required",
+    description: "required",
   };
   const customMessage = {
-    "required.name": "Name is required",
-    "required.email": "Email is required",
-    "require.password": "Password is required",
+    "required.title": "Title is required",
+    "required.description": "Email is required",
   };
-  data.password = bcrypt.hashSync(data.password, 10);
   const validation = new Validator(data, validationRule, customMessage);
   if (validation.fails()) {
     return res.status(400).json({
@@ -94,21 +65,22 @@ exports.createItem = async (req, res) => {
       message: JSON.parse(JSON.stringify(validation.errors)).errors,
     });
   }
-  const userSave = await User.create(data);
-  return res.status(200).json({ data: userSave, message: "Item created." });
+  const user = await User.findById("624d290ca064c14e12ccdb19");
+  const postSave = await Post.create({ ...data, user: user._id });
+  return res.status(200).json({ data: postSave, message: "Item created." });
 };
 
 /**
  * @openapi
- * /users:
+ * /posts:
  *   get:
- *     summary: Returns the list of all the user
- *     tags: [Users]
+ *     summary: Returns the list of all the post
+ *     tags: [Posts]
  *     security:
  *       - jwt: []
  *     responses:
  *       200:
- *         description: The user was successfully created
+ *         description: The post was successfully created
  *       400:
  *         description: validation error
  *       401:
@@ -118,34 +90,34 @@ exports.createItem = async (req, res) => {
  *
  */
 exports.listItem = async (req, res) => {
-  const data = await User.find().populate("posts");
+  const data = await Post.find().populate("users");
   return res.status(200).json({ data: data, message: "Item List." });
 };
 
 /**
  * @openapi
- * /users/{id}:
+ * /posts/{id}:
  *   get:
- *     summary: Get the user by id
- *     tags: [Users]
+ *     summary: Get the post by id
+ *     tags: [Posts]
  *     parameters:
  *       - in: path
  *         name: id
  *         schema:
  *           type: string
  *         required: true
- *         description: The user id
+ *         description: The post id
  *     security:
  *       - jwt: []
  *     responses:
  *       200:
- *         description: The user was successfully created
+ *         description: The post was successfully created
  *       400:
  *         description: validation error
  *       401:
  *         description: unauthorized
  *       404:
- *         description: No user found
+ *         description: No post found
  *       500:
  *         description: Some server error
  */
@@ -156,43 +128,43 @@ exports.readItem = async (req, res) => {
       .status(400)
       .json({ status: "ERROR", message: "Id is not valid." });
   }
-  const user = await User.findById(data).populate("posts");
-  if (!user) {
+  const post = await Post.findById(data).populate("users");
+  if (!post) {
     return res
       .status(404)
-      .json({ status: "ERROR", message: "User not found." });
+      .json({ status: "ERROR", message: "Post not found." });
   }
-  return res.status(200).json({ data: user, message: "Item Found." });
+  return res.status(200).json({ data: post, message: "Item Found." });
 };
 
 /**
  * @swagger
- * /users/{id}:
+ * /posts/{id}:
  *  put:
- *    summary: Update the user by the id
- *    tags: [Users]
+ *    summary: Update the post by the id
+ *    tags: [Posts]
  *    parameters:
  *      - in: path
  *        name: id
  *        schema:
  *          type: string
  *        required: true
- *        description: The user id
+ *        description: The post id
  *    requestBody:
  *      required: true
  *      content:
  *        application/json:
  *          schema:
- *            $ref: '#/components/schemas/User'
+ *            $ref: '#/components/schemas/Post'
  *    security:
  *       - jwt: []
  *    responses:
  *      200:
- *        description: The user was updated
+ *        description: The post was updated
  *      401:
  *         description: unauthorized
  *      404:
- *        description: The user was not found
+ *        description: The post was not found
  *      500:
  *        description: Some error happened
  */
@@ -205,8 +177,8 @@ exports.updateItem = async (req, res) => {
       .json({ status: "ERROR", message: "Id is not valid." });
   }
   const data = req.body;
-  const user = User.findByIdAndUpdate(id, data, { useFindAndModify: false });
-  user
+  const post = Post.findByIdAndUpdate(id, data, { useFindAndModify: false });
+  post
     .then((response) => {
       if (!response) {
         res.status(404).send({ message: "no data found" });
@@ -223,28 +195,28 @@ exports.updateItem = async (req, res) => {
 
 /**
  * @swagger
- * /users/{id}:
+ * /posts/{id}:
  *   delete:
- *     summary: Remove the user by id
- *     tags: [Users]
+ *     summary: Remove the post by id
+ *     tags: [Posts]
  *     parameters:
  *       - in: path
  *         name: id
  *         schema:
  *           type: string
  *         required: true
- *         description: The user id
+ *         description: The post id
  *     security:
  *       - jwt: []
  *     responses:
  *       200:
- *         description: The user was deleted
+ *         description: The post was deleted
  *       400:
  *         description: The given id is not valid
  *       401:
  *         description: unauthorized
  *       404:
- *         description: The user was not found
+ *         description: The post was not found
  */
 exports.deleteItem = async (req, res) => {
   const data = req.params.id;
@@ -253,11 +225,11 @@ exports.deleteItem = async (req, res) => {
       .status(400)
       .json({ status: "ERROR", message: "Object id is not valid." });
   }
-  const user = await User.findByIdAndRemove(data, { useFindAndModify: false });
-  if (!user) {
+  const post = await Post.findByIdAndRemove(data, { useFindAndModify: false });
+  if (!post) {
     return res
       .status(404)
       .json({ status: "ERROR", message: "Item not found." });
   }
-  return res.status(200).json({ data: user, message: "Item deleted." });
+  return res.status(200).json({ data: post, message: "Item deleted." });
 };
