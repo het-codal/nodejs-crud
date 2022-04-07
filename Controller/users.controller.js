@@ -75,27 +75,31 @@ require("dotenv/config");
  *         description: Some server error
  */
 exports.createItem = async (req, res) => {
-  const data = req.body;
-  const validationRule = {
-    email: "required|email",
-    name: "required",
-    password: "required",
-  };
-  const customMessage = {
-    "required.name": "Name is required",
-    "required.email": "Email is required",
-    "require.password": "Password is required",
-  };
-  data.password = bcrypt.hashSync(data.password, 10);
-  const validation = new Validator(data, validationRule, customMessage);
-  if (validation.fails()) {
-    return res.status(400).json({
-      status: "ERROR",
-      message: JSON.parse(JSON.stringify(validation.errors)).errors,
-    });
+  try {
+    const data = req.body;
+    const validationRule = {
+      email: "required|email",
+      name: "required",
+      password: "required",
+    };
+    const customMessage = {
+      "required.name": "Name is required",
+      "required.email": "Email is required",
+      "require.password": "Password is required",
+    };
+    data.password = bcrypt.hashSync(data.password, 10);
+    const validation = new Validator(data, validationRule, customMessage);
+    if (validation.fails()) {
+      return res.status(400).json({
+        status: "ERROR",
+        message: JSON.parse(JSON.stringify(validation.errors)).errors,
+      });
+    }
+    const userSave = await User.create(data);
+    return res.status(200).json({ data: userSave, message: "Item created." });
+  } catch (e) {
+    return res.status(500).json({ status: "ERROR", message: e.message });
   }
-  const userSave = await User.create(data);
-  return res.status(200).json({ data: userSave, message: "Item created." });
 };
 
 /**
@@ -118,8 +122,12 @@ exports.createItem = async (req, res) => {
  *
  */
 exports.listItem = async (req, res) => {
-  const data = await User.find().populate("posts");
-  return res.status(200).json({ data: data, message: "Item List." });
+  try {
+    const data = await User.find().populate("posts");
+    return res.status(200).json({ data: data, message: "Item List." });
+  } catch (e) {
+    return res.status(500).json({ status: "ERROR", message: e.message });
+  }
 };
 
 /**
@@ -150,19 +158,23 @@ exports.listItem = async (req, res) => {
  *         description: Some server error
  */
 exports.readItem = async (req, res) => {
-  const data = req.params.id;
-  if (!mongoose.isValidObjectId(data)) {
-    return res
-      .status(400)
-      .json({ status: "ERROR", message: "Id is not valid." });
+  try {
+    const data = req.params.id;
+    if (!mongoose.isValidObjectId(data)) {
+      return res
+        .status(400)
+        .json({ status: "ERROR", message: "Id is not valid." });
+    }
+    const user = await User.findById(data).populate("posts");
+    if (!user) {
+      return res
+        .status(404)
+        .json({ status: "ERROR", message: "User not found." });
+    }
+    return res.status(200).json({ data: user, message: "Item Found." });
+  } catch (e) {
+    return res.status(500).json({ status: "ERROR", message: e.message });
   }
-  const user = await User.findById(data).populate("posts");
-  if (!user) {
-    return res
-      .status(404)
-      .json({ status: "ERROR", message: "User not found." });
-  }
-  return res.status(200).json({ data: user, message: "Item Found." });
 };
 
 /**
@@ -198,27 +210,31 @@ exports.readItem = async (req, res) => {
  */
 
 exports.updateItem = async (req, res) => {
-  const id = req.params.id;
-  if (!mongoose.isValidObjectId(data)) {
-    return res
-      .status(400)
-      .json({ status: "ERROR", message: "Id is not valid." });
-  }
-  const data = req.body;
-  const user = User.findByIdAndUpdate(id, data, { useFindAndModify: false });
-  user
-    .then((response) => {
-      if (!response) {
-        res.status(404).send({ message: "no data found" });
-      }
-      return res.status(200).send({ message: "Data updated" });
-    })
-    .catch((err) => {
+  try {
+    const id = req.params.id;
+    if (!mongoose.isValidObjectId(data)) {
       return res
-        .status(500)
-        .send({ message: "Internal server error", err: err });
-    });
-  return res.status(200).json({ data: data, message: "Item Updated." });
+        .status(400)
+        .json({ status: "ERROR", message: "Id is not valid." });
+    }
+    const data = req.body;
+    const user = User.findByIdAndUpdate(id, data, { useFindAndModify: false });
+    user
+      .then((response) => {
+        if (!response) {
+          res.status(404).send({ message: "no data found" });
+        }
+        return res.status(200).send({ message: "Data updated" });
+      })
+      .catch((err) => {
+        return res
+          .status(500)
+          .send({ message: "Internal server error", err: err });
+      });
+    return res.status(200).json({ data: data, message: "Item Updated." });
+  } catch (e) {
+    return res.status(500).json({ status: "ERROR", message: e.message });
+  }
 };
 
 /**
@@ -247,17 +263,23 @@ exports.updateItem = async (req, res) => {
  *         description: The user was not found
  */
 exports.deleteItem = async (req, res) => {
-  const data = req.params.id;
-  if (!mongoose.isValidObjectId(data)) {
-    return res
-      .status(400)
-      .json({ status: "ERROR", message: "Object id is not valid." });
+  try {
+    const data = req.params.id;
+    if (!mongoose.isValidObjectId(data)) {
+      return res
+        .status(400)
+        .json({ status: "ERROR", message: "Object id is not valid." });
+    }
+    const user = await User.findByIdAndRemove(data, {
+      useFindAndModify: false,
+    });
+    if (!user) {
+      return res
+        .status(404)
+        .json({ status: "ERROR", message: "Item not found." });
+    }
+    return res.status(200).json({ data: user, message: "Item deleted." });
+  } catch (e) {
+    return res.status(500).json({ status: "ERROR", message: e.message });
   }
-  const user = await User.findByIdAndRemove(data, { useFindAndModify: false });
-  if (!user) {
-    return res
-      .status(404)
-      .json({ status: "ERROR", message: "Item not found." });
-  }
-  return res.status(200).json({ data: user, message: "Item deleted." });
 };

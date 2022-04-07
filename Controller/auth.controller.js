@@ -67,35 +67,38 @@ require("dotenv/config");
  *         description: Some server error
  */
 exports.login = async (req, res) => {
-  let user = await User.findOne({
-    email: req.body.email,
-    isDeleted: false,
-  });
-  if (!user) {
-    return res.status(404).json({ message: "No user" });
-  }
-  const secret = process.env.secret;
-  if (user && bcrypt.compareSync(req.body.password, user.password)) {
-    const token = jwt.sign(
-      {
-        id: user.id,
-        email: user.email,
-      },
-      secret,
-      { expiresIn: "1d" }
-    );
-    delete user.password;
-    const data = {
-      token: token,
-      user: user,
-    };
+  try {
+    let user = await User.findOne({
+      email: req.body.email,
+      isDeleted: false,
+    });
+    if (!user) {
+      return res.status(404).json({ message: "No user" });
+    }
+    const secret = process.env.secret;
+    if (user && bcrypt.compareSync(req.body.password, user.password)) {
+      //TODO: remove password key from user object
+      const token = jwt.sign(
+        {
+          user,
+        },
+        secret,
+        { expiresIn: "1d" }
+      );
+      const data = {
+        token: token,
+        user: user,
+      };
+      return res
+        .status(200)
+        .json({ data: data, message: "Logged in successfully." });
+    }
     return res
-      .status(200)
-      .json({ data: data, message: "Logged in successfully." });
+      .status(400)
+      .json({ status: "ERROR", message: "email/password is wrong." });
+  } catch (e) {
+    return res.status(500).json({ status: "ERROR", message: e.message });
   }
-  return res
-    .status(400)
-    .json({ status: "ERROR", message: "email/password is wrong." });
 };
 
 /**
@@ -123,25 +126,29 @@ exports.login = async (req, res) => {
  *         description: Some server error
  */
 exports.signup = async (req, res) => {
-  const data = req.body;
-  const validationRule = {
-    email: "required|email",
-    name: "required",
-    password: "required",
-  };
-  const customMessage = {
-    "required.name": "Name is required",
-    "required.email": "Email is required",
-    "require.password": "Password is required",
-  };
-  data.password = bcrypt.hashSync(data.password, 10);
-  const validation = new Validator(data, validationRule, customMessage);
-  if (validation.fails()) {
-    return res.status(400).json({
-      status: "ERROR",
-      message: JSON.parse(JSON.stringify(validation.errors)).errors,
-    });
+  try {
+    const data = req.body;
+    const validationRule = {
+      email: "required|email",
+      name: "required",
+      password: "required",
+    };
+    const customMessage = {
+      "required.name": "Name is required",
+      "required.email": "Email is required",
+      "require.password": "Password is required",
+    };
+    data.password = bcrypt.hashSync(data.password, 10);
+    const validation = new Validator(data, validationRule, customMessage);
+    if (validation.fails()) {
+      return res.status(400).json({
+        status: "ERROR",
+        message: JSON.parse(JSON.stringify(validation.errors)).errors,
+      });
+    }
+    const userSave = await User.create(data);
+    return res.status(200).json({ data: userSave, message: "Item created." });
+  } catch (e) {
+    return res.status(500).json({ status: "ERROR", message: e.message });
   }
-  const userSave = await User.create(data);
-  return res.status(200).json({ data: userSave, message: "Item created." });
 };

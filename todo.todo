@@ -1,0 +1,9 @@
+create common file for common function
+create error handler file for response
+implement testcases
+implement email notification with html
+implement eslint
+implement pagination and search
+implement logout function
+implement migration, seeders
+implement relationships
