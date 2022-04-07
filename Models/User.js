@@ -25,7 +25,7 @@ const UserSchema = mongoose.Schema({
     type: Date,
     default: Date.now,
   },
-  posts: [{ type: mongoose.Schema.Types.ObjectId, ref: "posts" }],
+  // posts: [{ type: mongoose.Schema.Types.ObjectId, ref: "posts" }],
 });
 UserSchema.method("toJSON", function () {
   const { __v, _id, ...object } = this.toObject();

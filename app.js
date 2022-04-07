@@ -7,7 +7,7 @@ const swaggerDocument = require("./swagger.json");
 const jwt = require("./helpers/jwt");
 const errorHandler = require("./helpers/error-handler");
 const cors = require("cors");
-
+let morgan = require("morgan");
 app.use(express.json());
 app.use(cors());
 app.use(
@@ -17,6 +17,7 @@ app.use(
 );
 
 app.use(jwt());
+app.use(morgan("combined"));
 require("./Route")(app);
 app.get("*", (req, res) => {
   res.status(200).json({ message: "Hello" });
@@ -38,3 +39,5 @@ mongoose
     console.log("connected to server.");
   })
   .catch((err) => console.log(err));
+
+module.exports = app;
