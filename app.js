@@ -26,12 +26,12 @@ app.get("*", (req, res) => {
 // app.use("/api/login", authRouter);
 
 app.use(errorHandler);
-const PORT = 8000;
+const PORT = process.env.PORT;
 
 app.listen(PORT, console.log("Port is running:" + `${PORT}`));
 
 mongoose
-  .connect("mongodb://localhost:27017/usermanagement", {
+  .connect(process.env.DB_URL, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
