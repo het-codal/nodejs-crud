@@ -2,6 +2,7 @@ const Post = require("../Models/Post");
 const User = require("../Models/User");
 const mongoose = require("mongoose");
 const Validator = require("validatorjs");
+const { getCurrentUser } = require("../util/common");
 /**
  * @swagger
  * tags:
@@ -50,6 +51,7 @@ const Validator = require("validatorjs");
  */
 exports.createItem = async (req, res) => {
   try {
+    const currentUser = await getCurrentUser(req.user);
     let data = req.body;
     const validationRule = {
       title: "required",
@@ -57,7 +59,7 @@ exports.createItem = async (req, res) => {
     };
     const customMessage = {
       "required.title": "Title is required",
-      "required.description": "Email is required",
+      "required.description": "Description is required",
     };
     const validation = new Validator(data, validationRule, customMessage);
     if (validation.fails()) {
@@ -66,8 +68,12 @@ exports.createItem = async (req, res) => {
         message: JSON.parse(JSON.stringify(validation.errors)).errors,
       });
     }
-    const user = await User.findById("624d290ca064c14e12ccdb19");
-    const postSave = await Post.create({ ...data, user: user._id });
+    const post = new Post({
+      title: data.title,
+      description: data.description,
+      user: currentUser.id,
+    });
+    const postSave = await post.save();
     return res.status(200).json({ data: postSave, message: "Item created." });
   } catch (e) {
     return res.status(500).json({ status: "ERROR", message: e.message });
@@ -95,7 +101,10 @@ exports.createItem = async (req, res) => {
  */
 exports.listItem = async (req, res) => {
   try {
-    const data = await Post.find().populate("users");
+    const data = await Post.find().populate(
+      "user",
+      "name isDeleted createdAt updatedAt"
+    );
     return res.status(200).json({ data: data, message: "Item List." });
   } catch (e) {
     return res.status(500).json({ status: "ERROR", message: e.message });
@@ -137,7 +146,7 @@ exports.readItem = async (req, res) => {
         .status(400)
         .json({ status: "ERROR", message: "Id is not valid." });
     }
-    const post = await Post.findById(data).populate("users");
+    const post = await Post.findById(data).populate("user");
     if (!post) {
       return res
         .status(404)

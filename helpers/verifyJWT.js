@@ -9,7 +9,7 @@ function verifyJWT(req, res, next) {
     if (Date.now() >= decoded.exp * 1000) {
       return res.status(401).json({ message: "Unauthorized" });
     }
-    req.user = { ...decoded };
+    req.user = { ...decoded.user };
     next();
   } catch (e) {
     res.status(400).json("Token not valid");

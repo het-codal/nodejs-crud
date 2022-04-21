@@ -12,7 +12,7 @@ module.exports = (app) => {
   });
 
   app.post("/api/login", AuthController.login);
-  app.post("/api/signup", AuthController.login);
+  app.post("/api/signup", AuthController.signup);
 
   app.get("/api/*/:id", [verifyJWT, verifyAdmin], async (req, res, next) => {
     const url = req.url.split("/");

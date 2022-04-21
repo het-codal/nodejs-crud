@@ -10,7 +10,7 @@ const PostSchema = mongoose.Schema({
   },
   user: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "users",
+    ref: "User",
   },
   isDeleted: {
     type: Boolean,
@@ -33,4 +33,4 @@ PostSchema.method("toJSON", function () {
   return object;
 });
 
-module.exports = mongoose.model("posts", PostSchema);
+module.exports = mongoose.model("Post", PostSchema);
