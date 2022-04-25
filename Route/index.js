@@ -23,7 +23,7 @@ module.exports = (app) => {
   });
 
   app.get("/api/*", [verifyJWT], async (req, res, next) => {
-    const url = req.url.split("/");
+    const url = req.url.substring(0, req.url.indexOf("?")).split("/");
     const rootPath = path.join(__dirname, "../");
     const controllerName = url[2] + ".controller.js";
     const controllerObject = require(rootPath + "Controller/" + controllerName);

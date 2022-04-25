@@ -2,6 +2,7 @@ const User = require("../Models/User");
 const mongoose = require("mongoose");
 const Validator = require("validatorjs");
 const bcrypt = require("bcrypt");
+const { getPagination } = require("../util/common");
 require("dotenv/config");
 /**
  * @swagger
@@ -110,6 +111,29 @@ exports.createItem = async (req, res) => {
  *     tags: [Users]
  *     security:
  *       - jwt: []
+ *     parameters:
+ *       - in: query
+ *         name:  page
+ *         type: integer
+ *       - in: query
+ *         name: size
+ *         type: integer
+ *       - in: query
+ *         name: sortKey
+ *         type: string
+ *       - in: query
+ *         name: search
+ *         type: string
+ *       - in: query
+ *         name: sortBy
+ *         schema:
+ *          type: string
+ *          enum: [ASC, DESC]
+ *       - in: query
+ *         name: isVerified
+ *         schema:
+ *          type: string
+ *          enum: [All, Yes, No]
  *     responses:
  *       200:
  *         description: The user was successfully created
@@ -123,8 +147,18 @@ exports.createItem = async (req, res) => {
  */
 exports.listItem = async (req, res) => {
   try {
-    const data = await User.find().populate("posts");
-    return res.status(200).json({ data: data, message: "Item List." });
+    const { page, size, search, sortBy, sortKey } = req.query;
+    const data = User.find();
+    const totalItems = await User.find().count();
+    const response = await getPagination(
+      data,
+      page,
+      size,
+      totalItems,
+      "id",
+      "DESC"
+    );
+    return res.status(200).json({ data: response, message: "Item List." });
   } catch (e) {
     return res.status(500).json({ status: "ERROR", message: e.message });
   }
