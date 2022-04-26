@@ -1,4 +1,5 @@
 const User = require("../Models/User");
+const Post = require("../Models/Post");
 const mongoose = require("mongoose");
 const Validator = require("validatorjs");
 const bcrypt = require("bcrypt");
@@ -148,15 +149,15 @@ exports.createItem = async (req, res) => {
 exports.listItem = async (req, res) => {
   try {
     const { page, size, search, sortBy, sortKey } = req.query;
-    const data = User.find();
+    const data = User.find().populate("posts");
     const totalItems = await User.find().count();
     const response = await getPagination(
       data,
       page,
       size,
       totalItems,
-      "id",
-      "DESC"
+      sortBy,
+      sortKey
     );
     return res.status(200).json({ data: response, message: "Item List." });
   } catch (e) {

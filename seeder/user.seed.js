@@ -5,7 +5,7 @@ const path = require("path");
 require("dotenv").config({ path: path.resolve(__dirname, "../.env") });
 
 mongoose
-  .connect(process.env.Test_DB_URL, {
+  .connect(process.env.DB_URL, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
@@ -19,11 +19,13 @@ const userSeed = [
     name: "Codal Demo",
     email: "codal@codaldemo.com",
     password: bcrypt.hashSync("admin123", 10),
+    isAdmin: 1,
   },
   {
     name: "Codal User",
     email: "superadmin@codal.com",
     password: bcrypt.hashSync("admin123", 10),
+    isAdmin: 1,
   },
 ];
 User.insertMany(userSeed);

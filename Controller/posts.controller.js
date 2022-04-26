@@ -73,7 +73,10 @@ exports.createItem = async (req, res) => {
       description: data.description,
       user: currentUser.id,
     });
+    const author = await User.findById({ _id: currentUser.id });
     const postSave = await post.save();
+    await author.posts.push(postSave._id);
+    await author.save();
     return res.status(200).json({ data: postSave, message: "Item created." });
   } catch (e) {
     return res.status(500).json({ status: "ERROR", message: e.message });

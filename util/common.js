@@ -13,8 +13,10 @@ exports.getPagination = async (
   page = page ? page - 1 : page;
   const limit = size ? +size : 3;
   const offset = page ? page * limit : 0;
-  totalItems = await data.count();
-  const result = await data.skip(offset).limit(limit);
+  const result = await data
+    .skip(offset)
+    .limit(limit)
+    .sort({ [sortKey]: sortBy });
   page = page + 1;
   const currentPage = page;
   const nextPage = page + 1;
@@ -32,4 +34,29 @@ exports.getPagination = async (
     firstPage,
     lastPage,
   };
+};
+
+exports.arrayGet = async (key, data, defaultValue) => {
+  if (
+    Array.isArray(data) &&
+    key in data &&
+    data[key] != "" &&
+    data[key] !== undefined
+  ) {
+    return data[key];
+  }
+  return defaultValue;
+};
+
+exports.objectToArray = async (data) => {
+  let newData = [];
+  if (typeof data === "object") {
+    data = await Object.entries(data);
+    for (var i = 0; i < data.length; i++) {
+      newData[data[i][0]] = data[i][1];
+    }
+  } else {
+    return data;
+  }
+  return newData;
 };
