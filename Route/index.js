@@ -1,4 +1,5 @@
 const AuthController = require("../Controller/auth.controller");
+const SwaggerController = require("../Controller/swagger.controller");
 const path = require("path");
 const verifyJWT = require("../helpers/verifyJWT");
 const verifyAdmin = require("../helpers/verifyAdmin");
@@ -10,7 +11,7 @@ module.exports = (app) => {
     );
     next();
   });
-
+  app.get("/api/swagger", SwaggerController.getItem);
   app.post("/api/login", AuthController.login);
   app.post("/api/signup", AuthController.signup);
 
@@ -23,7 +24,8 @@ module.exports = (app) => {
   });
 
   app.get("/api/*", [verifyJWT], async (req, res, next) => {
-    const url = req.url.substring(0, req.url.indexOf("?")).split("/");
+    let url = req.url.substring(0, req.url.indexOf("?")).split("/");
+    url = url != "" ? url : req.url.split("/");
     const rootPath = path.join(__dirname, "../");
     const controllerName = url[2] + ".controller.js";
     const controllerObject = require(rootPath + "Controller/" + controllerName);

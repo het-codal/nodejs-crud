@@ -15,15 +15,19 @@ require("dotenv/config");
 /**
  * @openapi
  * definitions:
- *   BulkSource:
- *     type: object
- *     properties:
- *       language:
- *        type: string
- *       BE:
- *        type: integer
- *       FE:
- *        type: integer
+ *   schemas:
+ *     BulkSource:
+ *       type: object
+ *       properties:
+ *         language:
+ *           type: string
+ *           description: The user name
+ *         BE:
+ *           type: string
+ *           description: The user email
+ *         FE:
+ *           type: string
+ *           description: The user password
  */
 
 /**
@@ -49,7 +53,7 @@ require("dotenv/config");
  *         Languages:
  *           type: array
  *           items:
- *             $ref: '#/definitions/BulkSource'
+ *             $ref: '#/definitions/schemas/BulkSource'
  */
 
 /**

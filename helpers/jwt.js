@@ -8,6 +8,8 @@ function jwt() {
       // public routes that don't require authentication
       "/api/login",
       "/api/signup",
+      "/api/swagger",
+      "/api/swagger-ui",
     ],
   });
 }
